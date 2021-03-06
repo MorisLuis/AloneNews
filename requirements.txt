@@ -1,4 +1,4 @@
 Flask==1.1.2
 gunicorn==20.0.4
 json5==0.9.5
-Scrapy @ file:///C:/ci/scrapy_1606864804541/work
+Scrapy==1.2.3
