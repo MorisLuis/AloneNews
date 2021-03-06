@@ -1,0 +1,119 @@
+{% extends "form.html" %}
+
+
+{% block body %}
+<!-- User input form -->
+<link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
+
+<div class="input-group">
+  <button type="button" id="scrape" class="btn btn-success">Scrape</button>
+  <p id="status" class="ml-4"></p>
+</div>
+
+<!-- Output layout -->
+<div id="output" class="mt-4"></div>
+
+<script type="text/javascript">
+  // API POST request to init scraper settings file
+  $('#scrape').on('click', () => {
+    // update status
+    $('#status').text('Buscando en todo Internet...')
+
+    // API call
+    $.post('/run', (res) => {
+      // update status
+      $('#status').text('')
+
+      // loop over dataset
+      $.each(res.data, function (index, card) {
+
+
+        var id = `myCanvas-${index}`
+
+
+
+
+        // generate content tags
+
+        var content = `
+        <div class="card">
+
+          <div class="card__canvas">
+                <canvas id="myCanvas">${card.foto}</canvas>
+            </div>
+            <div class="card__content">
+                <div class="card__text">
+                  <h5>${card.title}</h5>
+                  <p class="parrafo">${card.text}</p>
+                  <p class="fecha">${card.fecha}</p>  
+                </div>
+                <div class="card__buttons">
+                  <button>Descargar</button>  
+                  <a target="_blank" href="${card.url}">Link</a>
+                </div>
+            </div>
+            
+        </div>
+
+          `
+
+
+        // append content dynamically
+        $('#output').append(content);
+        var canvas = document.getElementById('myCanvas');
+        canvas.width = canvas.scrollWidth;
+        canvas.height = canvas.scrollHeight;
+        window.devicePixelRatio = 2;
+
+        var context = canvas.getContext('2d');
+        //var logo = new Image();
+	      //logo.src = "../static/img/LogoBlancoSinB.png"
+
+        function draw(context, image) {
+
+          if (!image.complete) {
+            setTimeout(function () { draw(context, image); }, 500);
+            return;
+          }
+
+
+          canvas.width = canvas.clientWidth * 2
+          canvas.height = canvas.clientHeight * 2
+          //context.drawImage(logo, 900, 1070, 194, 72);
+          scaleToFill(image)
+          context.scale(2, 2)
+
+          var canvasTxt = window.canvasTxt.default
+          var txt = card.title[0];
+
+          context.fillStyle = 'white'
+          context.shadowColor = 'black'
+          context.shadowBlur = 90
+          canvasTxt.font = 'Bebas Neue'
+          canvasTxt.fontSize = 50
+          canvasTxt.align = 'left'
+          canvasTxt.drawText(context, txt, 50, 10, 300, 500)
+        }
+
+        function scaleToFill(img) {
+          // get the scale
+          var scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+          // get the top left position of the image
+          var x = (canvas.width / 2) - (img.width / 2) * scale;
+          var y = (canvas.height / 2) - (img.height / 2) * scale;
+          context.drawImage(img, x, y, img.width * scale, img.height * scale);
+        }
+
+        var image = new Image();
+        image.src = card.foto
+
+        draw(context, image);
+
+
+        canvas.id = index
+      });
+    })
+  })
+
+</script>
+{% endblock %}
